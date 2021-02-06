@@ -216,4 +216,4 @@ fabric.properties
 saved/*
 *.zip
 
-data/*
+data

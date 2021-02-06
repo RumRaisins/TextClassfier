@@ -47,7 +47,7 @@ class Config(object):
 
 class Model(nn.Module):
 
-    def __init__(self, config, label_weight):
+    def __init__(self, config, label_weight=None):
         super(Model, self).__init__()
         self.bert = BertModel.from_pretrained(
             config.bert_path, config=config.bert_config
@@ -55,10 +55,13 @@ class Model(nn.Module):
         self.fc = nn.Linear(config.hidden_size, config.num_class)
         # init intent weight
         self.label_weight = label_weight
+        if label_weight == None:
+            self.label_loss_fct = torch.nn.BCEWithLogitsLoss()
+            return
         self.label_loss_fct = torch.nn.BCEWithLogitsLoss(pos_weight=self.label_weight)
 
 
-    def forward(self, task, label_tensor):
+    def forward(self, task, label_tensor=None):
         content = task[0]
         mask = task[1]
         token_type_ids = task[2]
@@ -66,6 +69,7 @@ class Model(nn.Module):
                               attention_mask=mask,
                               token_type_ids=token_type_ids)
         label_logits = self.fc(pooled)
-
+        if label_tensor is None:
+            return label_logits
         loss = self.label_loss_fct(label_logits, label_tensor)
         return label_logits, loss

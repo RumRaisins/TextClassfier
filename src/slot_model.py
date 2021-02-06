@@ -56,7 +56,7 @@ class Model(nn.Module):
         self.fc = nn.Linear(config.hidden_size, config.num_class)
         self.slot_loss_fct = torch.nn.CrossEntropyLoss()
 
-    def forward(self, task, slot_tensor):
+    def forward(self, task, slot_tensor=None):
         content = task[0]
         mask = task[1]
         token_type_ids = task[2]
@@ -65,7 +65,12 @@ class Model(nn.Module):
                               token_type_ids=token_type_ids)
         # [batch_size, seq_length, hidden_size] -> [batch_size, seq_length, slot_num]
         slot_logits = self.fc(sequence_output)
-        # slot_tensor [batch_szie, seq_length, slot_num]
 
-        loss = self.slot_loss_fct(slot_logits, slot_tensor)
+        if slot_tensor is None:
+            return slot_logits
+
+        # slot_tensor [batch_size, seq_length, slot_num]
+        slot_logits_view = slot_logits.view(-1, self.slot_num)
+        slot_tensor_view = slot_tensor.view(-1)
+        loss = self.slot_loss_fct(slot_logits_view, slot_tensor_view)
         return slot_logits, loss

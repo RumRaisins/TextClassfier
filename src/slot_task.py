@@ -114,7 +114,7 @@ def evaluate(config, model, data_iter, test=False):
 
 
 if __name__ == '__main__':
-    debug = True
+    debug = False
     config = model.Config()
     np.random.seed(1)
     torch.manual_seed(1)

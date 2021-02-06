@@ -26,10 +26,12 @@ class BertDataset(Dataset):
         text = data[0]
 
         slots = []
+        index = 0
         for label in data[1]:
-            slot_mark = [0.0] * self.label_num
-            slot_mark[self.label2index[label]] = 1.0
-            slots.append(slot_mark)
+            slots.append(self.label2index[label])
+            index += 1
+            if index == self.max_length:
+                break
 
         text_dict = self.tokenizer.encode_plus(
             text,
@@ -66,18 +68,6 @@ def collate_fn(batch):
         pad_indice = [item + [pad_idx] * max(0, max_length - len(item)) for item in indice]
         return torch.tensor(pad_indice)
 
-    def padding_slot(slot, max_length, pad_idx=0):
-        slot_num = len(slot[0][0])
-        result = []
-        #[batch_size, seq_line, slot_num]
-        for line in slot:
-            for item in range(max(0, max_length - len(line))):
-                line.append([pad_idx] * slot_num)
-        return torch.tensor(slot)
-
-
-
-
     token_ids = [data["token_ids"] for data in batch]
     max_length = max([len(t) for t in token_ids])  # batch中样本的最大的长度
     labels = [data["labels"] for data in batch]
@@ -87,21 +77,14 @@ def collate_fn(batch):
     token_ids_padded = padding(token_ids, max_length)
     token_type_ids_padded = padding(token_type_ids, max_length)
     attention_mask_padded = padding(attention_mask, max_length)
-    labels = padding_slot(labels, max_length)
+    labels = padding(labels, max_length)
     return token_ids_padded, attention_mask_padded, token_type_ids_padded, labels
 
 
 def recover_intent(index2label, label_logits):
     das = []
-    for j in range(len(index2label)):
-        if label_logits[j] > 0:
-            label_domain = index2label[j]
-            das.append(label_domain)
+    for j in range(len(label_logits)):
+        tmp = label_logits[j]
+        index = int(torch.max(tmp.data, -1)[1].cpu())
+        das.append(index2label[index])
     return das
-
-
-
-
-if __name__ == '__main__':
-    tmp = BertDataset(open("../../data/intent_test_data.json","r", encoding="utf8").read(),
-                      debug=True)

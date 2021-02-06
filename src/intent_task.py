@@ -6,8 +6,8 @@ from tqdm import tqdm
 from torch.utils.data import DataLoader
 from transformers import BertTokenizer, AdamW
 
-import src.nlu_model as model
-from src.utils.bert_dataset_nlu import BertDataset, collate_fn, recover_intent
+import src.intent_model as model
+from src.utils.bert_dataset_intent import BertDataset, collate_fn, recover_intent
 from src.utils.tools import create_logger, calculate_f1
 
 
