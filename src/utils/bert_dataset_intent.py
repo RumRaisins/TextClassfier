@@ -25,7 +25,7 @@ class BertDataset(Dataset):
             return
         self.label_weight = [1] * len(self.label2index)
         for data in self.data:
-            for label in data[1]:
+            for label in data[2]:
                 self.label_weight[self.label2index[label]] += 1
         train_size = len(self.data)
         for label, label_index in self.label2index.items():
@@ -42,8 +42,12 @@ class BertDataset(Dataset):
         data = self.data[item]
         text = data[0]
         labels = [0.0] * self.label_num
-        for label in data[1]:
+        for label in data[2]:
             labels[self.label2index[label]] = 1.0
+        if len(data[2]) == 0:
+            # print("".join(text) + " 无标签")
+            labels[self.label2index["Other"]] = 1.0
+
 
         text_dict = self.tokenizer.encode_plus(
             text,

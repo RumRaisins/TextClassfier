@@ -11,10 +11,10 @@ class Config(object):
     def __init__(self):
         self.model_name = "bret_slot"
 
-        self.train_path = "../data/joint_train_data.json"
-        self.dev_path = "../data/joint_val_data.json"
-        self.test_path = "../data/joint_test_data.json"
-        self.label_path = "../data/tag_vocab.json"
+        self.train_path = "../data/joint/joint_train_data.json"
+        self.dev_path = "../data/joint/joint_val_data.json"
+        self.test_path = "../data/joint/joint_test_data.json"
+        self.label_path = "../data/joint/tag_vocab.json"
         label = json.loads(open(self.label_path, "r", encoding="utf8").read())
         self.class_label = list(label)
         self.label2index = dict([(x, i) for i, x in enumerate(label)])
@@ -70,7 +70,9 @@ class Model(nn.Module):
             return slot_logits
 
         # slot_tensor [batch_size, seq_length, slot_num]
-        slot_logits_view = slot_logits.view(-1, self.slot_num)
-        slot_tensor_view = slot_tensor.view(-1)
+
+        slot_mask = mask.view(-1) == 1
+        slot_logits_view = slot_logits.view(-1, self.slot_num)[slot_mask]
+        slot_tensor_view = slot_tensor.view(-1)[slot_mask]
         loss = self.slot_loss_fct(slot_logits_view, slot_tensor_view)
         return slot_logits, loss

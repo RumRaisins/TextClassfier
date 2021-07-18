@@ -11,10 +11,10 @@ class Config(object):
     def __init__(self):
         self.model_name = "bret_nlu"
 
-        self.train_path = "../data/intent_train_data.json"
-        self.dev_path = "../data/intent_val_data.json"
-        self.test_path = "../data/intent_test_data.json"
-        self.label_path = "../data/intent_vocab.json"
+        self.train_path = "../data/joint/joint_train_data.json"
+        self.dev_path = "../data/joint/joint_val_data.json"
+        self.test_path = "../data/joint/joint_test_data.json"
+        self.label_path = "../data/joint/intent_vocab.json"
         label = json.loads(open(self.label_path, "r", encoding="utf8").read())
         self.class_label = list(label)
         self.label2index = dict([(x, i) for i, x in enumerate(label)])
@@ -37,11 +37,11 @@ class Config(object):
         self.eps = 1e-8
         self.require_improvement = 3
         self.bert_path = r"D:\Work\bertMode\chinese_wwm_ext_pytorch"
+        # self.bert_path = r"D:\Work\bertMode\albert_tiny_zh"
         self.bert_config = BertConfig.from_pretrained(
             self.bert_path + "/config.json"
         )
         self.tokenizer = BertTokenizer.from_pretrained(self.bert_path)
-        self.hidden_size = 768
 
 
 
@@ -52,7 +52,7 @@ class Model(nn.Module):
         self.bert = BertModel.from_pretrained(
             config.bert_path, config=config.bert_config
         )
-        self.fc = nn.Linear(config.hidden_size, config.num_class)
+        self.fc = nn.Linear(config.bert_config.hidden_size, config.num_class)
         # init intent weight
         self.label_weight = label_weight
         if label_weight == None:
