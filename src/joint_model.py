@@ -64,6 +64,7 @@ class Model(nn.Module):
         self.bert = BertModel.from_pretrained(
             config.bert_path, config=config.bert_config
         )
+        self.intent_hiden = nn.Linear(config.hidden_size, config.hidden_size)
         self.intent_classifier = nn.Linear(config.hidden_size, config.intent_num)
         nn.init.xavier_normal_(self.intent_classifier.weight)
 
@@ -83,7 +84,9 @@ class Model(nn.Module):
         sequence_out, pooled = self.bert(content,
                               attention_mask=mask,
                               token_type_ids=token_type_ids)
-        intent_logits = self.intent_classifier(pooled)
+        intent_logits = self.intent_hiden(pooled)
+        intent_logits = torch.relu(intent_logits)
+        intent_logits = self.intent_classifier(intent_logits)
         slot_logits = self.slot_classifier(sequence_out)
 
         if intent_tensor is None and slot_tensor is None:

@@ -61,7 +61,7 @@ def train(config, model, train_iter, dev_iter, test_iter):
                     batch_progress.set_postfix(Batch=total_batch,
                                                loss=loss.item())
                     batch_progress.update()
-                if total_batch % 50 == 0 and total_batch != 0:
+                if total_batch % config.eval_batch == 0 and total_batch != 0:
                     F1 = evaluate(config, model, dev_iter)
                     if F1 < dev_best_F1:
                         dev_best_F1 = F1
@@ -117,7 +117,7 @@ def evaluate(config, model, data_iter, test=False):
 
 
 if __name__ == '__main__':
-    debug = True
+    debug = False
     config = model.Config()
     np.random.seed(1)
     torch.manual_seed(1)

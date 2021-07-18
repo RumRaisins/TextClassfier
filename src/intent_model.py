@@ -35,6 +35,7 @@ class Config(object):
         self.learning_rate = 5e-5  # 学习率
         self.dropout = 0.1
         self.eps = 1e-8
+        self.eval_batch = 600
         self.require_improvement = 3
         self.bert_path = r"D:\Work\bertMode\chinese_wwm_ext_pytorch"
         # self.bert_path = r"D:\Work\bertMode\albert_tiny_zh"
@@ -52,7 +53,9 @@ class Model(nn.Module):
         self.bert = BertModel.from_pretrained(
             config.bert_path, config=config.bert_config
         )
+        self.hidden = nn.Linear(config.bert_config.hidden_size, config.bert_config.hidden_size)
         self.fc = nn.Linear(config.bert_config.hidden_size, config.num_class)
+
         # init intent weight
         self.label_weight = label_weight
         if label_weight == None:
@@ -68,7 +71,9 @@ class Model(nn.Module):
         tmp, pooled = self.bert(content,
                               attention_mask=mask,
                               token_type_ids=token_type_ids)
-        label_logits = self.fc(pooled)
+        label_logits = self.hidden(pooled)
+        label_logits = torch.relu(label_logits)
+        label_logits = self.fc(label_logits)
         if label_tensor is None:
             return label_logits
         loss = self.label_loss_fct(label_logits, label_tensor)
